@@ -1,0 +1,22 @@
+# MondayMorning Property Tracking System Dependencies
+
+# Core web crawling and extraction
+# crawl4ai
+pydantic
+asyncio
+
+# Database and data processing
+pandas
+
+# Content hashing
+# xxhash
+
+# Configuration management
+PyYAML
+
+# Environment management
+python-dotenv
+
+# AI/LLM (OpenAI API)
+openai
+# tiktoken

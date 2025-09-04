@@ -1,0 +1,18 @@
+# General configuration for the data collection pipeline.
+# Based on design.md
+pipeline:
+  batch_size: 10
+  # How frequently to re-scan a competitor, in hours.
+  freshness_hours: 24
+  # Set to null or 0 for no limit. Useful for testing.
+  extraction_limit_per_competitor: 5
+
+database:
+  # Path for the SQLite database file.
+  sqlite_path: "/home/apatel/fn_projects/mondaymorning/data/mondaymorning.db"
+
+collection:
+  # User agent for the web crawler.
+  user_agent: "MondayMorning Data Collector"
+  # Number of parallel extractions to run.
+  concurrent_extractions: 5

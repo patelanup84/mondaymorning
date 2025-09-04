@@ -1,0 +1,62 @@
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Jupyter Notebooks & checkpoints
+.ipynb_checkpoints/
+notebooks/
+
+# Data files (raw/processed)
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.db
+*.sqlite
+*.sqlite3
+
+# Large data directories
+data/
+datasets/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Output / results
+outputs/
+results/
+figures/
+plots/
+
+# System / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Project Specific
+.env
+.cursorignore
+.cursorrules
+.llmignore
+changelog.md
+docs/
+data/
+notebooks/
+sandbox/
+_support/
