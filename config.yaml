@@ -1,11 +1,13 @@
 # General configuration for the data collection pipeline.
-# Based on design.md
 pipeline:
   batch_size: 10
   # How frequently to re-scan a competitor, in hours.
   freshness_hours: 24
-  # Set to null or 0 for no limit. Useful for testing.
-  extraction_limit_per_competitor: 5
+  # Number of days a listing is considered 'new'.
+  new_listing_days: 7
+  # Limit extractions per competitor. Set to a low number for testing.
+  # For production, this should be null.
+  extraction_limit_per_competitor: null
 
 database:
   # Path for the SQLite database file.
@@ -16,3 +18,23 @@ collection:
   user_agent: "MondayMorning Data Collector"
   # Number of parallel extractions to run.
   concurrent_extractions: 5
+
+# --- Testing Configuration ---
+# All settings in this section are applied when the --test flag is used.
+testing:
+  # Suffix to append to the database file name for isolated test runs.
+  db_suffix: "_test"
+  # Override freshness_hours to ensure discovery always runs.
+  freshness_hours: 0
+  # Override extraction limit to reduce API costs during tests.
+  extraction_limit_per_competitor: 2
+  # Set to true to export test run results to a CSV file.
+  export_csv: true
+  # The directory where the CSV export will be saved.
+  export_dir: "data/csv_exports/testing"
+  # A specific list of competitor keys to process during a test run.
+  competitors:
+    - PRM
+    - EXC
+
+

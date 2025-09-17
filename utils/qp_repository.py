@@ -5,7 +5,6 @@ from typing import List, Dict, Any
 class QPRepository:
     """Handles all database operations for Quick Possession (QP) data."""
     def __init__(self, conn: sqlite3.Connection):
-        """Initializes the repository with a database connection."""
         self.conn = conn
         self.cursor = conn.cursor()
 
@@ -24,10 +23,24 @@ class QPRepository:
         """)
         self._execute_query("""
         CREATE TABLE IF NOT EXISTS qp_properties (
-            property_id TEXT PRIMARY KEY, url TEXT NOT NULL, address TEXT, community TEXT,
-            price REAL, sqft REAL, beds INTEGER, baths REAL, main_image_url TEXT,
-            features_json TEXT, price_per_sqft REAL, first_extracted_at TEXT NOT NULL,
+            property_id TEXT PRIMARY KEY,
+            url TEXT NOT NULL,
+            address TEXT,
+            community TEXT,
+            price REAL,
+            sqft REAL,
+            beds INTEGER,
+            baths REAL,
+            main_image_url TEXT,
+            features_json TEXT,
+            price_per_sqft REAL,
+            first_extracted_at TEXT NOT NULL,
             last_updated_at TEXT NOT NULL,
+            -- New columns for analysis
+            competitor_code TEXT,
+            first_seen TEXT,
+            last_seen TEXT,
+            listing_status TEXT, -- 'new', 'active', or 'removed'
             FOREIGN KEY (property_id) REFERENCES qp_urls (property_id)
         );
         """)
@@ -46,11 +59,24 @@ class QPRepository:
         self.cursor.execute(query, url_data)
         self.conn.commit()
 
+
     def upsert_property(self, prop_data: Dict[str, Any]):
         query = """
-        INSERT INTO qp_properties (property_id, url, address, community, price, sqft, beds, baths, main_image_url, features_json, price_per_sqft, first_extracted_at, last_updated_at)
-        VALUES (:property_id, :url, :address, :community, :price, :sqft, :beds, :baths, :main_image_url, :features_json, :price_per_sqft, :first_extracted_at, :last_updated_at)
-        ON CONFLICT(property_id) DO UPDATE SET address = excluded.address, community = excluded.community, price = excluded.price, sqft = excluded.sqft, beds = excluded.beds, baths = excluded.baths, main_image_url = excluded.main_image_url, features_json = excluded.features_json, price_per_sqft = excluded.price_per_sqft, last_updated_at = excluded.last_updated_at;
+        INSERT INTO qp_properties (
+            property_id, url, address, community, price, sqft, beds, baths,
+            main_image_url, features_json, price_per_sqft, first_extracted_at,
+            last_updated_at, competitor_code, first_seen, last_seen, listing_status
+        ) VALUES (
+            :property_id, :url, :address, :community, :price, :sqft, :beds, :baths,
+            :main_image_url, :features_json, :price_per_sqft, :first_extracted_at,
+            :last_updated_at, :competitor_code, :first_seen, :last_seen, :listing_status
+        ) ON CONFLICT(property_id) DO UPDATE SET
+            address = excluded.address, community = excluded.community, price = excluded.price,
+            sqft = excluded.sqft, beds = excluded.beds, baths = excluded.baths,
+            main_image_url = excluded.main_image_url, features_json = excluded.features_json,
+            price_per_sqft = excluded.price_per_sqft, last_updated_at = excluded.last_updated_at,
+            competitor_code = excluded.competitor_code, first_seen = excluded.first_seen,
+            last_seen = excluded.last_seen, listing_status = excluded.listing_status;
         """
         self.cursor.execute(query, prop_data)
         self.conn.commit()

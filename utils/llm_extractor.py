@@ -10,7 +10,7 @@ from crawl4ai import (AsyncWebCrawler, CrawlerRunConfig, LLMExtractionStrategy, 
 class QPListing(BaseModel):
     """Pydantic schema for data extraction from a single property page."""
     address: str
-    community: str
+    community: Optional[str] = None
     price: Optional[float] = None
     sqft: Optional[float] = None
     beds: Optional[int] = None
@@ -79,17 +79,15 @@ async def extract_property_data(url: str, llm_provider: str) -> Optional[Dict]:
                 print(f"❌ Failed for {url}: LLM returned empty content.")
                 return None
 
-            # --- Integrated Validation Logic ---
+            # --- Validation Logic ---
             address = raw_data.get('address')
-            community = raw_data.get('community')
-
-            if not (isinstance(address, str) and address.strip() and isinstance(community, str) and community.strip()):
-                print(f"❌ Validation Failed for {url}: Missing or invalid address/community.")
+            if not (isinstance(address, str) and address.strip()):
+                print(f"❌ Validation Failed for {url}: Missing or invalid address.")
                 return None
-
+            
             cleaned_data = {
                 'address': address.strip(),
-                'community': community.strip(),
+                'community': raw_data.get('community'),
                 'price': _clean_numeric(raw_data.get('price')),
                 'sqft': _clean_numeric(raw_data.get('sqft')),
                 'beds': _clean_numeric(raw_data.get('beds')),

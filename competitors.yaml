@@ -1,28 +1,24 @@
 # List of competitors to track for QP listings.
-# Ported from getdata_qpproperties.py
+# The pipeline will process all competitors listed here in a production run.
 competitors:
   PRM:
     name: "Prominent Homes"
     domain: "prominenthomes.ca"
     pattern: "*/quick-possessions/*?*"
-    active: true
   EXC:
     name: "Excel Homes"
     domain: "excelhomes.ca"
     pattern: "*/quick-possession/*?*"
-    active: true
   AVI:
     name: "Homes by Avi"
     domain: "homesbyavi.com"
     pattern: "*/quick-possession/*?*"
-    active: false
   STR:
     name: "Sterling Homes"
     domain: "sterlingcalgary.com"
     pattern: "*/quick_possession/*?*"
-    active: false
   AKS:
     name: "Akash Homes"
     domain: "akashhomes.com"
     pattern: "*/quick-possessions/*?*"
-    active: false
+
