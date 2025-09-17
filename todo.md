@@ -1,5 +1,5 @@
 **git**
-git add . && git commit -m "added testing" && git push origin main
+git add . && git commit -m "initial commit" && git push
 
 **v4**
 - added testing in cli python main.py --test
