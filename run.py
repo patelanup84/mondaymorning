@@ -110,9 +110,10 @@ async def run_async(stage, component):
             if component == 'quickpossession':
                 from src.models import QPCollectorConfig
                 logger.info("Creating QPCollectorConfig...")
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 config = QPCollectorConfig(
                     competitors=competitors,
-                    output_path=RAW_DIR / f"{component}_output.json"
+                    output_path=RAW_DIR / f"{timestamp}_{component}.csv"
                 )
                 logger.info(f"Config created: url_limit={config.url_limit_per_competitor}, llm_provider={config.llm_provider}")
                 logger.info(f"Output path: {config.output_path}")

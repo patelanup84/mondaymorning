@@ -23,9 +23,12 @@ class PropertiesNormalizer(BaseNormalizer):
             try:
                 record = row.to_dict()
                 
-                # Convert datetime
-                if pd.notna(record.get('fetched_at')):
-                    record['fetched_at'] = pd.to_datetime(record['fetched_at'])
+                # Convert datetime fields
+                if pd.notna(record.get('discovered_at')):
+                    record['discovered_at'] = pd.to_datetime(record['discovered_at'])
+                
+                if pd.notna(record.get('extracted_at')):
+                    record['extracted_at'] = pd.to_datetime(record['extracted_at'])
                 
                 # Parse string dicts back to actual dicts
                 if pd.notna(record.get('metadata')) and isinstance(record['metadata'], str):
