@@ -9,6 +9,13 @@ from datetime import datetime
 
 
 # =============================================================================
+# Business Constants
+# =============================================================================
+
+OUR_COMPANY_ID = "PRM"
+
+
+# =============================================================================
 # Data Models (Domain Objects)
 # =============================================================================
 
@@ -58,9 +65,9 @@ class BaseCollectorConfig(BaseModel):
 
 class QPCollectorConfig(BaseCollectorConfig):
     """Configuration for Quick Possession collector."""
-    url_limit_per_competitor: int = 3
+    url_limit_per_competitor: int = 5
     llm_provider: str = "openai/gpt-4o-mini"
-    location_name: Optional[str] = None
+    location_name: Optional[str] = "Calgary,Alberta,Canada"
     language_name: Optional[str] = "English"
 
 

@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional, Dict
 import logging
 
-from ..config import CLEAN_DIR, ENRICHED_DIR, OUR_COMPANY_ID
+from ..config import CLEAN_DIR, ENRICHED_DIR
+from ..models import OUR_COMPANY_ID
 
 
 class BaseAnalyzer(ABC):

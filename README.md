@@ -1,322 +1,259 @@
 # MondayMorning Platform
-## Automated Competitive Intelligence for Homebuilders
 
-[![Prototype Status](https://img.shields.io/badge/Status-Demo--Ready%20Prototype-orange)](README.md)
-[![Industry](https://img.shields.io/badge/Industry-Homebuilding-blue)](README.md)
-[![Market](https://img.shields.io/badge/Market-Calgary%20AB-green)](README.md)
+MondayMorning automatically collects, analyzes, and benchmarks competitive data to provide actionable intelligence for strategic decision-making. The platform transforms manual competitive research into automated insights with built-in benchmarking against your position in the market.
 
 ---
 
-## 🎯 Executive Summary
+## Core Concept
 
-MondayMorning is an **automated, AI-driven competitive intelligence platform** specifically designed for homebuilders. It transforms manual, time-consuming competitive analysis into automated insights that drive faster, data-driven business decisions.
+**Automated Intelligence Pipeline**: Collect competitor data → Normalize and validate → Analyze with benchmarking → Generate insights
 
-### The Problem
-- **Reactive Decision Making**: Companies adjust pricing after opportunities are lost
-- **Manual Intelligence**: Sporadic, inconsistent competitive data collection
-- **No Benchmarking**: Limited visibility into market positioning vs. true competitors
-- **Time-Intensive**: Hours spent on manual research that becomes outdated quickly
+**Competitive Benchmarking**: Every analysis automatically includes rankings, deltas, and positioning relative to your company, providing clear "how do we stack up" answers.
 
-### The Solution
-- **Automated Data Collection**: AI agents continuously monitor competitor websites, pricing, and inventory
-- **Real-Time Benchmarking**: Instant competitive positioning with rankings and deltas
-- **Actionable Insights**: Executive-ready reports showing exactly how you stack up
-- **Weekly Intelligence**: Fresh competitive landscape analysis delivered automatically
+**Hyper-Relevant Insights**: Focused analysis modules generate specific intelligence for different business needs rather than generic market reports.
 
 ---
 
-## 💼 Business Value Proposition
+## Architecture
 
-### For Sales Leadership
-- **Proactive Pricing Strategy**: Know competitor moves before they impact your sales
-- **Market Positioning**: Clear visibility into where you rank vs. competition
-- **Inventory Intelligence**: Track competitor quick possession availability and pricing
-
-### For Sales Teams
-- **Objection Handling**: Data-backed responses to price and feature comparisons
-- **Competitive Talking Points**: Know exactly how your specs and pricing compare
-- **Market Awareness**: Stay informed on new promotions and competitor changes
-
-### ROI Impact
-- **Time Savings**: Eliminate 5-10 hours/week of manual competitive research
-- **Faster Response**: Reduce lag time from competitor move to internal action
-- **Better Decisions**: Data-driven pricing and positioning strategies
-- **Margin Protection**: Early warning system for competitive pressure
-
----
-
-## 🚀 Quick Demo Setup
-
-### Prerequisites
-```bash
-# Python 3.8+
-python --version
-
-# Virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
-```
-
-### 1-Minute Installation
-```bash
-# Clone and setup
-git clone [repository-url]
-cd mondaymorning
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys (OpenAI required for demo)
-
-# Run demo pipeline
-python run.py pipeline properties
-```
-
-### Demo Output
-The pipeline generates:
-- **HTML Report**: `outputs/reports/properties_report_[timestamp].html`
-- **PDF Export**: `outputs/reports/properties_report_[timestamp].pdf`
-- **Data Tables**: Interactive competitor comparison and executive summary
-
----
-
-## 📊 Demo Walkthrough
-
-### Business Demo Script (8 minutes)
-
-#### 1. Problem Setup (2 min)
-*"Traditional competitive analysis in homebuilding is manual, reactive, and time-consuming. By the time you adjust pricing or positioning, market opportunities are already lost."*
-
-#### 2. Live Pipeline Demo (3 min)
-```bash
-# Show the automation magic
-python run.py pipeline properties
-```
-
-**Narration**: *"This command automatically collects data from competitor websites, normalizes pricing and inventory information, performs competitive benchmarking, and generates executive-ready reports - all in under 2 minutes."*
-
-#### 3. Report Analysis (3 min)
-Open the generated HTML report and walk through:
-
-- **Executive Summary Cards**: 
-  - *"We currently have X active listings vs. market average of Y"*
-  - *"Our median price per sqft ranks #3 out of 6 competitors"*
-  - *"We're covering 8 communities compared to competitor average of 5"*
-
-- **Competitive Comparison Table**:
-  - *"Here's exactly how we stack up - rankings, pricing deltas, inventory positions"*
-  - *"Competitor A is $50K (7.2%) above our pricing in the same market"*
-  - *"We can see market gaps and positioning opportunities immediately"*
-
-#### 4. Business Impact (1 min)
-*"This same analysis, done manually, would take your team 6-8 hours and be outdated by the time it's complete. With MondayMorning, you get fresh competitive intelligence weekly, enabling proactive rather than reactive decision-making."*
-
----
-
-## ⚙️ Platform Architecture
-
-### Data Pipeline Overview
+### 4-Stage Pipeline
 ```
 Collect → Normalize → Analyze → Report
-   ↓         ↓          ↓        ↓
-Raw Data → Clean Data → Insights → Reports
 ```
 
-### Current Data Sources
-- **Quick Possession Properties**: Automated website scraping with AI extraction
-- **Google Reviews**: API-based competitor review analysis
-- **Digital Advertising**: Competitor promotion and campaign monitoring *(roadmap)*
-- **News Articles**: Industry and competitor mention tracking *(roadmap)*
+**Collect**: AI agents gather data from websites, APIs, and documents  
+**Normalize**: Clean, validate, and merge data into canonical databases  
+**Analyze**: Compute competitive metrics with automatic benchmarking  
+**Report**: Generate interactive reports and executive summaries  
 
-### Competitive Intelligence Features
-- **Automatic Benchmarking**: Rankings and competitive deltas on all metrics
-- **Market Positioning**: Know exactly where you stand vs. true competitors
-- **Change Detection**: Identify new listings, price changes, sold properties
-- **Executive Summaries**: Business-ready insights with competitive context
+### Data Flow
+```
+Raw Sources → Master Databases → Analysis Results → Intelligence Reports
+data/raw/   → data/clean/      → data/enriched/  → outputs/reports/
+```
 
 ---
 
-## 🛠️ Usage Guide
+## Quick Start
 
-### Individual Components
+### Installation
 ```bash
-# Data collection
-python run.py run collect quickpossession
-
-# Data normalization  
-python run.py run normalize properties
-
-# Analysis generation
-python run.py run analyze properties_table
-python run.py run analyze properties_snapshot
-
-# Report creation
-python run.py run report properties
+git clone [repository]
+cd mondaymorning
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-### Pipeline Automation
+### Configuration
+**Environment (.env)** - Secrets only:
 ```bash
-# Full properties pipeline
+OPENAI_API_KEY=sk-...        # For AI data extraction
+DATAFORSEO_USERNAME=...      # For Google Reviews collector
+DATAFORSEO_PASSWORD=...      # For Google Reviews collector
+```
+
+**Business Settings** - Configured in code:
+- Company ID: `src/models.py` (`OUR_COMPANY_ID = "PRM"`)
+- Collector defaults: `src/models.py` (URL limits, LLM providers, locations)
+- System paths: `src/config.py` (data directories, logging)
+
+**Competitors (competitors.csv)**:
+```csv
+competitor_id,name,domain,cid
+YOUR_CODE,Your Company,yourcompany.com,1234567890
+COMP1,Competitor One,comp1.com,2345678901
+COMP2,Competitor Two,comp2.com,3456789012
+```
+
+### Basic Usage
+```bash
+# Full pipeline
 python run.py pipeline properties
 
-# Custom stage selection
-python run.py pipeline properties --stages analyze,report
+# Individual stages
+python run.py run collect quickpossession
+python run.py run normalize properties
+python run.py run analyze properties_table
+python run.py run report properties
 
 # List available components
 python run.py list
 ```
 
-### Configuration
-```bash
-# Environment variables (.env)
-OUR_COMPANY_ID=ABC           # Your company identifier for benchmarking
-OPENAI_API_KEY=sk-...        # Required for AI data extraction
-DATAFORSEO_USERNAME=...      # For review data collection
-DATAFORSEO_PASSWORD=...      # For review data collection
+---
 
-# Competitor configuration (competitors.csv)
-competitor_id,name,website,cid
-COMP1,Competitor One,example1.com,1234567890
-COMP2,Competitor Two,example2.com,0987654321
+## Workflow
+
+### 1. Data Collection
+Automated agents collect competitor information:
+- **Web Scraping**: Extract structured data from competitor websites
+- **API Integration**: Gather data from review platforms and business directories
+- **Document Processing**: Parse PDFs, reports, and marketing materials
+
+### 2. Data Normalization
+Raw data is cleaned and standardized:
+- **Schema Validation**: Ensure data quality and consistency
+- **Enrichment**: Add derived fields and calculated metrics
+- **Master Databases**: Maintain canonical datasets with change tracking
+
+### 3. Competitive Analysis
+Generate focused intelligence with built-in benchmarking:
+- **Automatic Rankings**: See how you rank across key metrics
+- **Competitive Deltas**: Understand gaps and opportunities
+- **Market Positioning**: Know exactly where you stand
+
+### 4. Intelligence Reports
+Deliver actionable insights:
+- **Executive Summaries**: Key metrics with competitive context
+- **Detailed Analysis**: Interactive tables and comparative data
+- **Export Options**: HTML reports and PDF exports
+
+---
+
+## Architecture Details
+
+### Configuration Architecture
+Clean separation of concerns:
+- **`.env`**: API keys and secrets only
+- **`src/config.py`**: System constants (paths, directories, logging)
+- **`src/models.py`**: Business logic defaults (company ID, collector settings)
+
+### Modular Design
+Each stage uses base classes with inheritance for extensibility:
+- `BaseCollector` → Specific collectors (web, API, document)
+- `BaseNormalizer` → Data type normalizers (properties, reviews)
+- `BaseAnalyzer` → Analysis modules (tables, snapshots, trends)
+- `BaseReport` → Report generators (HTML, PDF, dashboards)
+
+### Competitive Benchmarking
+Built into every analyzer automatically:
+```python
+# Automatic features in all analysis
+- Rankings: "2nd out of 5 competitors"
+- Deltas: "$50K (7.2%) above us"
+- Context: "Top 25th percentile in market"
+```
+
+### Data Storage
+- **Parquet**: Primary storage for performance and querying
+- **CSV**: Human-readable exports and debugging
+- **Timestamped**: Track changes and maintain history
+
+---
+
+## Adding New Intelligence Sources
+
+### 1. Create Collector
+```python
+# src/collect/new_source.py
+class NewSourceCollector(BaseCollector):
+    async def _collect_raw(self, config):
+        # Collection logic
+    
+    async def _transform(self, config):
+        # Schema compliance
+```
+
+### 2. Create Normalizer
+```python
+# src/normalize/new_normalizer.py
+class NewNormalizer(BaseNormalizer):
+    def _validate(self, df):
+        # Data validation
+    
+    def _enrich(self, df):
+        # Add derived fields
+    
+    def _merge(self, new_df, master_path):
+        # Update master database
+```
+
+### 3. Create Analyzer
+```python
+# src/analyze/new_analyzer.py
+class NewAnalyzer(BaseAnalyzer):
+    def _load_data(self):
+        # Load from master database
+    
+    def _compute_analysis(self, data):
+        # Generate focused metrics
+    
+    def _get_benchmark_config(self):
+        # Configure competitive benchmarking
+```
+
+### 4. Update Pipeline
+Add to pipeline configuration and test end-to-end workflow.
+
+---
+
+## CLI Reference
+
+### Individual Components
+```bash
+python run.py run <stage> <component>
+
+# Examples
+python run.py run collect web_scraper
+python run.py run analyze pricing_table
+python run.py run report executive_summary
+```
+
+### Pipeline Automation
+```bash
+python run.py pipeline <data_type> [--stages stage1,stage2,...]
+
+# Examples
+python run.py pipeline properties
+python run.py pipeline reviews --stages analyze,report
+```
+
+### Utility Commands
+```bash
+python run.py list                    # Show all available components
+python run.py --verbose <command>     # Detailed console logging
+python run.py --no-log <command>      # Disable file logging
 ```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── src/
-│   ├── collect/              # Data collection modules
-│   ├── normalize/            # Data cleaning and validation
-│   ├── analyze/              # Competitive analysis and benchmarking
-│   └── report/               # Report generation and templates
+│   ├── collect/          # Data collection modules
+│   ├── normalize/        # Data cleaning and validation  
+│   ├── analyze/          # Competitive analysis
+│   └── report/           # Intelligence report generation
 ├── data/
-│   ├── raw/                  # Collected data (timestamped)
-│   ├── clean/                # Normalized master databases
-│   └── enriched/             # Analysis results
-├── outputs/
-│   └── reports/              # Generated HTML/PDF reports
-├── templates/                # Report templates (Jinja2)
-├── run.py                    # Main CLI interface
-└── requirements.txt          # Python dependencies
+│   ├── raw/              # Collected data
+│   ├── clean/            # Master databases
+│   └── enriched/         # Analysis results
+├── logs/                 # Session logs (timestamped)
+├── outputs/reports/      # Generated reports
+├── templates/            # Report templates
+├── competitors.csv       # Competitor configuration
+├── run.py               # CLI interface
+└── requirements.txt     # Dependencies
 ```
 
 ---
 
-## 🔧 Development Workflow
+## Intelligence Outputs
 
-### Adding New Data Sources
+### Analysis Results
+- **Competitive Tables**: Direct competitor comparisons with rankings
+- **Executive Snapshots**: Key metrics with market positioning
+- **Trend Analysis**: Changes and movements over time
+- **Market Insights**: Opportunities and competitive gaps
 
-1. **Create Collector** (`src/collect/new_source.py`)
-   - Inherit from `BaseCollector`
-   - Implement data collection logic
-   - Add to collector registry
-
-2. **Create Normalizer** (`src/normalize/new_normalizer.py`)
-   - Inherit from `BaseNormalizer`
-   - Define data validation and enrichment
-   - Add to normalizer registry
-
-3. **Create Analyzers** (`src/analyze/new_analyzer.py`)
-   - Inherit from `BaseAnalyzer` (includes automatic benchmarking)
-   - Define focused analysis metrics
-   - Configure competitive benchmarking
-
-4. **Update Pipeline**
-   - Add to pipeline configuration in `run.py`
-   - Test end-to-end workflow
-
-### Testing
-```bash
-# Stage-specific testing
-python test_collect.py
-python test_normalize.py
-python test_analyze.py
-python test_report.py
-
-# Debug utilities
-python debug_csv.py          # Inspect data structure
-```
+### Report Formats
+- **Interactive HTML**: Sortable tables, responsive design
+- **PDF Exports**: Print-ready executive reports
+- **Data Exports**: CSV/Excel for further analysis
+- **API Access**: Programmatic access to intelligence data
 
 ---
 
-## 🎯 Roadmap & Next Steps
-
-### Phase 1: MVP Enhancement
-- **Reviews Intelligence**: Customer sentiment and rating analysis
-- **Email Alerts**: Automated notifications for significant competitor changes
-- **Historical Trending**: Track competitor movements over time
-
-### Phase 2: Advanced Analytics
-- **Predictive Insights**: Market trend forecasting and opportunity identification
-- **Geospatial Analysis**: Community-level competitive heat maps
-- **Price Optimization**: AI-driven pricing recommendations
-
-### Phase 3: Enterprise Integration
-- **CRM Integration**: Push competitive insights directly to sales systems
-- **API Development**: Enable integration with existing business intelligence tools
-- **Multi-Market Support**: Expand beyond Calgary to other metropolitan areas
-
----
-
-## 🏗️ Industry Context
-
-### Target Market
-- **Primary**: New home builders with quick possession inventory
-- **Geographic**: Calgary, Alberta metropolitan area
-- **Focus**: Competitive pricing and inventory intelligence
-
-### Competitive Landscape
-- **Traditional Methods**: Manual website checking, sporadic market reports
-- **Current Tools**: Basic web scraping, Excel-based analysis
-- **MondayMorning Advantage**: AI-powered automation with business intelligence
-
----
-
-## 📋 Demo Preparation Checklist
-
-### Technical Setup
-- [ ] Virtual environment activated
-- [ ] All dependencies installed (`pip install -r requirements.txt`)
-- [ ] OpenAI API key configured in `.env`
-- [ ] Sample competitor data available
-- [ ] Pipeline runs successfully end-to-end
-- [ ] Report generates without errors
-
-### Demo Environment
-- [ ] Backup static report available (in case of live demo issues)
-- [ ] Report opens cleanly in browser
-- [ ] Mobile/tablet compatibility verified for presentation flexibility
-- [ ] Demo narrative practiced and timed
-
-### Business Readiness
-- [ ] Competitive insights are meaningful and accurate
-- [ ] Value proposition clearly articulated
-- [ ] ROI calculation prepared
-- [ ] Next steps and implementation timeline defined
-
----
-
-## 📞 Support & Contact
-
-### Technical Issues
-- Review logs in console output for specific error messages
-- Check data availability in respective directories (`data/raw/`, `data/clean/`)
-- Verify API keys and environment configuration
-
-### Business Inquiries
-- Schedule demo: [contact information]
-- Implementation planning: [contact information]
-- Custom development: [contact information]
-
----
-
-## 📄 License & Status
-
-**Status**: Demo-Ready Prototype  
-
----
-
-*MondayMorning Platform - Transform manual competitive analysis into automated competitive advantage.*
+*MondayMorning Platform - Automated competitive intelligence for strategic advantage.*

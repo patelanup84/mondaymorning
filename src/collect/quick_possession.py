@@ -150,7 +150,10 @@ class QPCollector(BaseCollector):
             """
         )
         
-        crawler_config = CrawlerRunConfig(extraction_strategy=llm_strategy)
+        crawler_config = CrawlerRunConfig(
+            extraction_strategy=llm_strategy,
+            verbose=True 
+        )
         all_results = []
         
         async with AsyncWebCrawler() as crawler:
