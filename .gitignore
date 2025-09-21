@@ -49,14 +49,20 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Project Specific
-.env
-.cursorignore
-.cursorrules
-.llmignore
-changelog.md
+# Project Specific Folders
+venv/
+_support/
 docs/
 data/
 notebooks/
 sandbox/
-_support/
+temp/
+tests/
+
+# Project Specific Files
+.cursorignore
+.cursorrules
+.llmignore
+.env
+*.csv
+changelog.md
