@@ -125,16 +125,22 @@ async def run_async(stage, component):
             # Actually run the collector
             result = await collector.collect(config)
             
-            # Check success based on metadata
+            # Check if any meaningful work was done
             successful = result.metadata.get('successful', 0)
-            total_attempted = result.metadata.get('total_attempted', 0)
-            
-            if successful > 0:
-                click.echo(f"✅ {component} completed: {successful} URLs discovered")
+            new_extractions = result.metadata.get('successful_extractions', 0) 
+            csv_exported = result.metadata.get('csv_export_success', False)
+            errors = result.metadata.get('errors', [])
+
+            # Success if: any extractions happened OR CSV was exported successfully AND no errors
+            work_done = successful > 0 or csv_exported
+            has_errors = len(errors) > 0
+
+            if work_done and not has_errors:
+                click.echo(f"✅ {component} completed: {successful} total extractions")
                 logger.info(f"Collector {component} completed successfully: {result.metadata}")
             else:
-                click.echo(f"❌ {component} failed: {result.metadata.get('errors', [])}")
-                logger.error(f"Collector {component} failed: {result.metadata.get('errors', [])}")
+                click.echo(f"❌ {component} failed: {errors}")
+                logger.error(f"Collector {component} failed: {errors}")
             
         elif stage == 'normalize':
             normalizer = get_normalizer(component)
