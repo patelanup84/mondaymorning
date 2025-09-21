@@ -1,0 +1,177 @@
+{% extends "base_report.html.j2" %}
+
+{% block title %}Properties Competitive Report{% endblock %}
+
+{% block header_title %}Properties Market Analysis{% endblock %}
+{% block header_subtitle %}Quick Possession Competitive Intelligence{% endblock %}
+
+{% block content %}
+<!-- Executive Summary Cards -->
+{% if snapshot_records %}
+<section class="mb-5">
+    <h2 class="section-title">Executive Summary</h2>
+    <div class="row g-4">
+        {% for metric in snapshot_records %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card metric-card h-100">
+                <div class="card-body">
+                    <div class="metric-value">{{ metric.display_value }}</div>
+                    <div class="metric-label">{{ metric.description }}</div>
+                    {% if metric.competitive_context %}
+                    <div class="competitive-context">{{ metric.competitive_context }}</div>
+                    {% endif %}
+                    {% if metric.our_position %}
+                    <div class="our-position">{{ metric.our_position }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Competitor Comparison Table -->
+{% if table_records %}
+<section class="table-section">
+    <h2 class="section-title">Competitor Comparison</h2>
+    <div class="table-responsive">
+        <table id="competitorTable" class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Competitor</th>
+                    <th>Active Listings</th>
+                    <th>Median Price</th>
+                    <th>Median $/SqFt</th>
+                    <th>Communities</th>
+                    {% for col in table_columns %}
+                        {% if col.endswith('_rank') %}
+                        <th>{{ col.replace('_rank', '').replace('_', ' ').title() }} Rank</th>
+                        {% elif col.endswith('_vs_us') %}
+                        <th>{{ col.replace('_vs_us', '').replace('_', ' ').title() }} vs Us</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table_records %}
+                <tr>
+                    <td>
+                        <strong>{{ row.competitor_id }}</strong>
+                        {% if row.competitor_id == 'OUR' %}
+                        <span class="badge bg-primary ms-2">Us</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ row.active_listings or 'N/A' }}
+                        {% if row.active_listings_rank %}
+                        <span class="badge rank-badge bg-secondary ms-1">#{{ row.active_listings_rank }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.median_price %}
+                        ${{ "{:,.0f}".format(row.median_price) }}
+                        {% if row.median_price_rank %}
+                        <span class="badge rank-badge bg-secondary ms-1">#{{ row.median_price_rank }}</span>
+                        {% endif %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.median_price_per_sqft %}
+                        ${{ "{:.0f}".format(row.median_price_per_sqft) }}
+                        {% if row.median_price_per_sqft_rank %}
+                        <span class="badge rank-badge bg-secondary ms-1">#{{ row.median_price_per_sqft_rank }}</span>
+                        {% endif %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ row.communities_count or 'N/A' }}
+                        {% if row.communities_count_rank %}
+                        <span class="badge rank-badge bg-secondary ms-1">#{{ row.communities_count_rank }}</span>
+                        {% endif %}
+                    </td>
+                    {% for col in table_columns %}
+                        {% if col.endswith('_rank') and col in row and row[col] %}
+                        <td>
+                            <span class="badge bg-info">#{{ row[col] }}</span>
+                        </td>
+                        {% elif col.endswith('_vs_us') and col in row and row[col] %}
+                        <td>
+                            {% set delta_class = 'delta-neutral' %}
+                            {% if 'above us' in row[col] %}
+                                {% set delta_class = 'delta-positive' %}
+                            {% elif 'below us' in row[col] %}
+                                {% set delta_class = 'delta-negative' %}
+                            {% endif %}
+                            <span class="{{ delta_class }}">{{ row[col] }}</span>
+                        </td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<!-- Data Summary -->
+<section class="mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Report Summary</h5>
+                    <ul class="list-unstyled mb-0">
+                        {% if snapshot_records %}
+                        <li><i class="text-success">✓</i> {{ snapshot_records|length }} executive metrics</li>
+                        {% endif %}
+                        {% if table_records %}
+                        <li><i class="text-success">✓</i> {{ table_records|length }} competitors analyzed</li>
+                        {% endif %}
+                        <li><i class="text-info">ℹ</i> Automatic competitive benchmarking</li>
+                        <li><i class="text-info">ℹ</i> Real-time ranking analysis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Methodology</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><small class="text-muted">• Active listings only (new, updated, active status)</small></li>
+                        <li><small class="text-muted">• Rankings: 1 = best performing in category</small></li>
+                        <li><small class="text-muted">• Deltas: Difference from our company metrics</small></li>
+                        <li><small class="text-muted">• Data refreshed from latest collection cycle</small></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable for competitor comparison
+    {% if table_records %}
+    $('#competitorTable').DataTable({
+        "pageLength": 25,
+        "order": [[ 1, "desc" ]], // Sort by active listings descending
+        "responsive": true,
+        "language": {
+            "search": "Search competitors:",
+            "lengthMenu": "Show _MENU_ competitors",
+            "info": "Showing _START_ to _END_ of _TOTAL_ competitors"
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}
