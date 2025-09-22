@@ -16,3 +16,7 @@ jinja2
 
 # Testing
 
+
+# Non project requirement
+rich # for sql lite explorer ui
+

@@ -66,7 +66,7 @@ class BaseCollectorConfig(BaseModel):
 
 class QPCollectorConfig(BaseCollectorConfig):
     """Configuration for Quick Possession collector."""
-    url_limit_per_competitor: int = 5
+    url_limit_per_competitor: int = 10
     llm_provider: str = "openai/gpt-4o-mini"
     location_name: Optional[str] = "Calgary,Alberta,Canada"
     language_name: Optional[str] = "English"

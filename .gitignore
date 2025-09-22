@@ -54,10 +54,12 @@ venv/
 _support/
 docs/
 data/
+outputs/
 notebooks/
 sandbox/
 temp/
 tests/
+logs/
 
 # Project Specific Files
 .cursorignore
@@ -66,3 +68,7 @@ tests/
 .env
 *.csv
 changelog.md
+competitors.csv
+README.md
+sql_explorer.py
+saved_queries.json

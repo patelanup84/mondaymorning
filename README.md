@@ -21,15 +21,15 @@ MondayMorning automatically collects, analyzes, and benchmarks competitive data 
 Collect → Normalize → Analyze → Report
 ```
 
-**Collect**: AI agents gather data from websites, APIs, and documents  
+**Collect**: AI agents gather data from websites, APIs, and documents with intelligent state management  
 **Normalize**: Clean, validate, and merge data into canonical databases  
 **Analyze**: Compute competitive metrics with automatic benchmarking  
 **Report**: Generate interactive reports and executive summaries  
 
 ### Data Flow
 ```
-Raw Sources → Master Databases → Analysis Results → Intelligence Reports
-data/raw/   → data/clean/      → data/enriched/  → outputs/reports/
+Raw Sources → State Management → Master Databases → Analysis Results → Intelligence Reports
+data/raw/   → data/clean/        → data/enriched/  → outputs/reports/
 ```
 
 ---
@@ -86,10 +86,11 @@ python run.py list
 ## Workflow
 
 ### 1. Data Collection
-Automated agents collect competitor information:
+Automated agents collect competitor information with intelligent caching:
 - **Web Scraping**: Extract structured data from competitor websites
 - **API Integration**: Gather data from review platforms and business directories
 - **Document Processing**: Parse PDFs, reports, and marketing materials
+- **Smart Caching**: The QuickPossession collector uses SQLite-based state management to track URL discovery and extraction progress, enabling incremental data collection with 24-hour freshness checking and fault tolerance.
 
 ### 2. Data Normalization
 Raw data is cleaned and standardized:
@@ -125,6 +126,7 @@ Each stage uses base classes with inheritance for extensibility:
 - `BaseNormalizer` → Data type normalizers (properties, reviews)
 - `BaseAnalyzer` → Analysis modules (tables, snapshots, trends)
 - `BaseReport` → Report generators (HTML, PDF, dashboards)
+- `SQLiteStateManager` → Generic database utility for persistent state management
 
 ### Competitive Benchmarking
 Built into every analyzer automatically:
@@ -136,9 +138,10 @@ Built into every analyzer automatically:
 ```
 
 ### Data Storage
-- **Parquet**: Primary storage for performance and querying
-- **CSV**: Human-readable exports and debugging
-- **Timestamped**: Track changes and maintain history
+- **SQLite**: State management for incremental collection and fault tolerance
+- **Parquet**: Primary storage for master databases and analysis results
+- **CSV**: Pipeline compatibility and human-readable exports
+- **Timestamped Files**: Track changes and maintain history
 
 ---
 
@@ -148,8 +151,12 @@ Built into every analyzer automatically:
 ```python
 # src/collect/new_source.py
 class NewSourceCollector(BaseCollector):
+    def __init__(self):
+        super().__init__("new_source")
+        self.state_manager = SQLiteStateManager("new_source")  # Optional state management
+    
     async def _collect_raw(self, config):
-        # Collection logic
+        # Collection logic with optional caching
     
     async def _transform(self, config):
         # Schema compliance
@@ -225,9 +232,10 @@ python run.py --no-log <command>      # Disable file logging
 │   ├── collect/          # Data collection modules
 │   ├── normalize/        # Data cleaning and validation  
 │   ├── analyze/          # Competitive analysis
-│   └── report/           # Intelligence report generation
+│   ├── report/           # Intelligence report generation
+│   └── utils/            # Shared utilities (SQLite manager, etc.)
 ├── data/
-│   ├── raw/              # Collected data
+│   ├── raw/              # Collected data (SQLite state, CSV exports, JSON, etc.)
 │   ├── clean/            # Master databases
 │   └── enriched/         # Analysis results
 ├── logs/                 # Session logs (timestamped)

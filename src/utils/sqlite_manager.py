@@ -14,7 +14,7 @@ class SQLiteStateManager:
     
     def __init__(self, collector_name: str):
         self.collector_name = collector_name
-        self.db_path = RAW_DIR / f"{collector_name}_state.db"
+        self.db_path = RAW_DIR / f"{collector_name}.db"
         self.logger = logging.getLogger(f"state.{collector_name}")
         self._ensure_directory()
     
