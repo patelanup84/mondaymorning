@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import pandas as pd
+import json
 from pathlib import Path
 from typing import Optional
+from datetime import datetime
 import logging
 import glob
 
@@ -18,18 +20,12 @@ class BaseNormalizer(ABC):
     def normalize(self, collector_name: str) -> Optional[Path]:
         """Main normalization pipeline."""
         try:
-            # Find input file
-            input_file = self._find_latest_output(collector_name)
-            if not input_file:
-                self.logger.warning(f"No output file found for {collector_name}")
-                return None
+            self.logger.info(f"Processing {self.name} data for collector: {collector_name}")
             
-            self.logger.info(f"Processing {self.name} from {input_file}")
-            
-            # Read and validate data
-            raw_df = pd.read_csv(input_file)
-            if raw_df.empty:
-                self.logger.warning("No data to process")
+            # Load data using the new abstract method
+            raw_df = self._load_raw_data(collector_name)
+            if raw_df is None or raw_df.empty:
+                self.logger.warning("No raw data loaded to process")
                 return None
             
             validated_df = self._validate(raw_df)
@@ -43,6 +39,15 @@ class BaseNormalizer(ABC):
             # Merge with master database
             master_path = self._get_master_path()
             merged_df = self._merge(enriched_df, master_path)
+
+            # *** FIX: Convert columns with dicts/lists to JSON strings before saving ***
+            for col in merged_df.select_dtypes(include=['object']).columns:
+                # Check if any non-null values in the column are lists or dicts
+                if any(isinstance(i, (dict, list)) for i in merged_df[col].dropna()):
+                    self.logger.info(f"Standardizing complex column '{col}' to JSON strings before saving.")
+                    merged_df[col] = merged_df[col].apply(
+                        lambda x: json.dumps(x) if x is not None else None
+                    )
             
             # Save results
             merged_df.to_parquet(master_path, index=False)
@@ -54,8 +59,13 @@ class BaseNormalizer(ABC):
             return master_path
             
         except Exception as e:
-            self.logger.error(f"Normalization failed: {e}")
+            self.logger.error(f"Normalization failed: {e}", exc_info=True)
             return None
+    
+    @abstractmethod
+    def _load_raw_data(self, collector_name: str) -> Optional[pd.DataFrame]:
+        """Load raw data from the collector's output source (e.g., SQLite, CSV)."""
+        pass
     
     @abstractmethod
     def _validate(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -76,14 +86,3 @@ class BaseNormalizer(ABC):
     def _get_master_path(self) -> Path:
         """Get path for master database."""
         pass
-    
-    def _find_latest_output(self, collector_name: str) -> Optional[Path]:
-        """Find most recent collector output file."""
-        pattern = RAW_DIR / f"*{collector_name}*.csv"
-        files = glob.glob(str(pattern))
-        
-        if not files:
-            return None
-        
-        latest = max(files, key=lambda f: Path(f).stat().st_mtime)
-        return Path(latest)

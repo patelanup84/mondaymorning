@@ -22,14 +22,15 @@ DATA_FRESHNESS_HOURS = 24
 
 class QPListing(BaseModel):
     """Quick Possession property listing data model."""
-    # URL Discovery phase
+    # Key identifiers and discovery timestamp
     property_id: str
     competitor_id: str
     url: str
-    fetched_at: datetime
+    discovered_at: datetime
     metadata: Optional[Dict[str, Any]] = None
     
     # LLM Extraction phase
+    extracted_at: Optional[datetime] = None 
     address: str
     community: Optional[str] = None
     price: Optional[float] = None
@@ -66,7 +67,7 @@ class BaseCollectorConfig(BaseModel):
 
 class QPCollectorConfig(BaseCollectorConfig):
     """Configuration for Quick Possession collector."""
-    url_limit_per_competitor: int = 10
+    url_limit_per_competitor: int = 5
     llm_provider: str = "openai/gpt-4o-mini"
     location_name: Optional[str] = "Calgary,Alberta,Canada"
     language_name: Optional[str] = "English"
@@ -74,7 +75,7 @@ class QPCollectorConfig(BaseCollectorConfig):
 
 class ReviewsCollectorConfig(BaseCollectorConfig):
     """Configuration for Google Reviews collector."""
-    review_depth: int = 10  # Reviews per competitor
+    review_depth: int = 5  # Reviews per competitor
     dataforseo_username: str
     dataforseo_password: str
     location_name: str = "Calgary,Alberta,Canada"

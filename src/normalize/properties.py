@@ -1,11 +1,13 @@
 import pandas as pd
+import sqlite3
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import Set
 
 from .base import BaseNormalizer
 from ..models import QPListing
-from ..config import CLEAN_DIR
+from ..config import CLEAN_DIR, RAW_DIR
 
 
 class PropertiesNormalizer(BaseNormalizer):
@@ -13,37 +15,61 @@ class PropertiesNormalizer(BaseNormalizer):
     
     def __init__(self):
         super().__init__("properties")
-    
+
+    def _load_raw_data(self, collector_name: str) -> pd.DataFrame | None:
+        """
+        Loads property data from the collector's SQLite database.
+        It specifically fetches records where extraction was successful.
+        """
+        db_path = RAW_DIR / f"{collector_name}.db"
+        if not db_path.exists():
+            self.logger.error(f"SQLite database not found at {db_path}")
+            return None
+
+        try:
+            con = sqlite3.connect(db_path)
+            # Query only for records that were successfully extracted.
+            query = "SELECT * FROM properties WHERE extraction_status = 'success'"
+            df = pd.read_sql_query(query, con)
+            con.close()
+            
+            self.logger.info(f"Loaded {len(df)} successful records from {db_path}")
+            return df
+        except Exception as e:
+            self.logger.error(f"Failed to load data from SQLite DB: {e}")
+            return None
+
     def _validate(self, df: pd.DataFrame) -> pd.DataFrame:
         """Validate property data against QPListing schema."""
-        import ast
         valid_records = []
         
         for _, row in df.iterrows():
             try:
                 record = row.to_dict()
                 
-                # Convert datetime fields
+                # Convert datetime fields from string format
                 if pd.notna(record.get('discovered_at')):
                     record['discovered_at'] = pd.to_datetime(record['discovered_at'])
                 
                 if pd.notna(record.get('extracted_at')):
                     record['extracted_at'] = pd.to_datetime(record['extracted_at'])
                 
-                # Parse string dicts back to actual dicts
+                # *** FIX: Use json.loads for JSON strings ***
                 if pd.notna(record.get('metadata')) and isinstance(record['metadata'], str):
-                    record['metadata'] = ast.literal_eval(record['metadata'])
+                    record['metadata'] = json.loads(record['metadata'])
                 
                 if pd.notna(record.get('features')) and isinstance(record['features'], str):
-                    record['features'] = ast.literal_eval(record['features'])
-                
+                    record['features'] = json.loads(record['features'])
+
+                # Now, validation should pass without any patching.
                 validated = QPListing(**record)
                 valid_records.append(validated.model_dump())
                 
             except Exception as e:
-                self.logger.debug(f"Invalid property record: {e}")
+                self.logger.debug(f"Invalid property record: {row.get('url', 'N/A')}: {e}")
                 continue
         
+        self.logger.info(f"Validation successful for {len(valid_records)}/{len(df)} records.")
         return pd.DataFrame(valid_records)
     
     def _enrich(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -91,7 +117,12 @@ class PropertiesNormalizer(BaseNormalizer):
         result_df = pd.concat([new_df, removed_df], ignore_index=True)
         result_df = result_df.drop_duplicates(subset=['property_id'], keep='first')
         
-        self.logger.info(f"Merge: {len(new_df)} new/updated, {len(removed_df)} sold")
+        # Improved logging for merge status
+        new_count = len(new_df[new_df['status']=='new'])
+        updated_count = len(new_df[new_df['status']=='updated'])
+        sold_count = len(removed_df)
+        self.logger.info(f"Merge: {new_count} new, {updated_count} updated, {sold_count} sold")
+
         return result_df
     
     def _get_master_path(self) -> Path:
