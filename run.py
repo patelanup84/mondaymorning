@@ -15,7 +15,6 @@ from typing import Dict, Any, List
 
 # Auto-discover from existing registries
 from src.collect import get_collector, list_collectors
-from src.normalize import get_normalizer, list_normalizers
 from src.analyze.properties_table import PropertiesTableAnalyzer
 from src.analyze.properties_snapshot import PropertiesSnapshotAnalyzer
 from src.report import generate_reports, list_reports
@@ -126,10 +125,17 @@ async def run_async(stage, component):
             result = await collector.collect(config)
             
             # Check if any meaningful work was done
-            successful = result.metadata.get('successful', 0)
-            new_extractions = result.metadata.get('successful_extractions', 0) 
-            csv_exported = result.metadata.get('csv_export_success', False)
+            successful_extractions = result.metadata.get('successful_extractions', 0)
+            failed_extractions = result.metadata.get('failed_extractions', 0)
+            total_extractions = successful_extractions + failed_extractions
             errors = result.metadata.get('errors', [])
+
+            # if successful_extractions > 0 or total_extractions > 0:
+            #     click.echo(f"✅ {component} completed: {successful_extractions} successful extractions")
+            #     logger.info(f"Collector {component} completed successfully: {result.metadata}")
+            # else:
+            #     click.echo(f"❌ {component} failed: {result.metadata.get('errors', [])}")
+            #     logger.error(f"Collector {component} failed: {result.metadata.get('errors', [])}")
 
             # Success if: any extractions happened OR CSV was exported successfully AND no errors
             work_done = successful > 0 or csv_exported
@@ -143,6 +149,7 @@ async def run_async(stage, component):
                 logger.error(f"Collector {component} failed: {errors}")
             
         elif stage == 'normalize':
+            from src.normalize import get_normalizer  # Import only when needed
             normalizer = get_normalizer(component)
             if not normalizer:
                 logger.error(f"Unknown normalizer: {component}")
@@ -245,6 +252,8 @@ def list_components():
     """List all available components"""
     logger = logging.getLogger(__name__)
     logger.info("Executing command: list-components")
+    
+    from src.normalize import list_normalizers  # Lazy import so we don't load normalizer when we don't need it
     
     click.echo("📋 Available Components:")
     click.echo(f"  Collectors: {list_collectors()}")

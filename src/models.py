@@ -17,20 +17,22 @@ DATA_FRESHNESS_HOURS = 24
 
 
 # =============================================================================
-# Data Models (Domain Objects)
+# Properties Pipeline
 # =============================================================================
 
-class QPListing(BaseModel):
-    """Quick Possession property listing data model."""
-    # Key identifiers and discovery timestamp
+class URLRecord(BaseModel):
     property_id: str
-    competitor_id: str
     url: str
-    discovered_at: datetime
+    competitor_id: str
+    status: str  # 'active', 'inactive'
+    first_seen: datetime
+    last_seen: datetime
+    extraction_status: str  # 'pending', 'success', 'failed'
+    last_attempted_extraction: Optional[datetime] = None
     metadata: Optional[Dict[str, Any]] = None
-    
-    # LLM Extraction phase
-    extracted_at: Optional[datetime] = None 
+
+class PropertyExtractionSchema(BaseModel):
+    """For LLM extraction only - raw output"""
     address: str
     community: Optional[str] = None
     price: Optional[float] = None
@@ -40,6 +42,9 @@ class QPListing(BaseModel):
     main_image_url: Optional[str] = None
     features: Optional[Dict[str, Any]] = None
 
+# =============================================================================
+# Reviews Pipeline
+# =============================================================================
 
 class ReviewListing(BaseModel):
     """Google review data model."""

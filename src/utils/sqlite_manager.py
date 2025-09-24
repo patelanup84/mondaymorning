@@ -3,14 +3,14 @@ import json
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
 import logging
 
 from ..config import RAW_DIR
 
 
 class SQLiteStateManager:
-    """Generic SQLite state manager for collectors with flexible schema support."""
+    """Generic SQLite state manager with multi-table support for collectors."""
     
     def __init__(self, collector_name: str):
         self.collector_name = collector_name
@@ -30,7 +30,7 @@ class SQLiteStateManager:
     
     def create_table(self, table_name: str, schema: Dict[str, str], indexes: List[str] = None) -> bool:
         """
-        Create table with given schema.
+        Create single table with given schema.
         
         Args:
             table_name: Name of table to create
@@ -69,6 +69,48 @@ class SQLiteStateManager:
                 
         except Exception as e:
             self.logger.error(f"Failed to create table '{table_name}': {e}")
+            return False
+    
+    def create_multiple_tables(self, table_specs: Dict[str, Tuple[Dict[str, str], List[str]]]) -> bool:
+        """
+        Create multiple tables atomically.
+        
+        Args:
+            table_specs: Dict mapping table_name to (schema, indexes) tuple
+            
+        Returns:
+            True if all tables created successfully
+        """
+        try:
+            with self.get_connection() as conn:
+                for table_name, (schema, indexes) in table_specs.items():
+                    # Build CREATE TABLE statement
+                    columns = []
+                    for col_name, col_type in schema.items():
+                        columns.append(f"{col_name} {col_type}")
+                    
+                    columns_sql = ",\n                        ".join(columns)
+                    
+                    create_sql = f"""
+                        CREATE TABLE IF NOT EXISTS {table_name} (
+                            {columns_sql}
+                        )
+                    """
+                    
+                    conn.execute(create_sql)
+                    
+                    # Create indexes
+                    if indexes:
+                        for index_col in indexes:
+                            index_name = f"idx_{table_name}_{index_col}"
+                            conn.execute(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name}({index_col})")
+                
+                conn.commit()
+                self.logger.info(f"Created/verified {len(table_specs)} tables: {list(table_specs.keys())}")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Failed to create multiple tables: {e}")
             return False
     
     def insert_or_ignore(self, table_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> int:
@@ -126,7 +168,7 @@ class SQLiteStateManager:
     
     def update_record(self, table_name: str, updates: Dict[str, Any], where_clause: str, where_params: List[Any] = None) -> bool:
         """
-        Update records matching WHERE clause.
+        Update single record matching WHERE clause.
         
         Args:
             table_name: Target table
@@ -178,6 +220,56 @@ class SQLiteStateManager:
             self.logger.error(f"Failed to update {table_name}: {e}")
             return False
     
+    def update_records_batch(self, table_name: str, updates: Dict[str, Any], where_clause: str, where_params: List[Any] = None) -> int:
+        """
+        Update multiple records matching WHERE clause.
+        
+        Args:
+            table_name: Target table
+            updates: Dict of column->value updates
+            where_clause: SQL WHERE clause (without WHERE keyword)
+            where_params: Parameters for WHERE clause
+            
+        Returns:
+            Number of records updated
+        """
+        try:
+            if not updates:
+                return 0
+            
+            # Process updates (convert complex objects to JSON)
+            processed_updates = {}
+            for key, value in updates.items():
+                if isinstance(value, (dict, list)):
+                    processed_updates[key] = json.dumps(value)
+                else:
+                    processed_updates[key] = value
+            
+            with self.get_connection() as conn:
+                # Build UPDATE statement
+                set_clauses = [f"{col} = ?" for col in processed_updates.keys()]
+                update_values = list(processed_updates.values())
+                
+                update_sql = f"""
+                    UPDATE {table_name} 
+                    SET {', '.join(set_clauses)}
+                    WHERE {where_clause}
+                """
+                
+                # Combine update values with where parameters
+                all_params = update_values + (where_params or [])
+                
+                cursor = conn.execute(update_sql, all_params)
+                conn.commit()
+                
+                updated_count = cursor.rowcount
+                self.logger.debug(f"Batch updated {updated_count} records in {table_name}")
+                return updated_count
+                
+        except Exception as e:
+            self.logger.error(f"Failed to batch update {table_name}: {e}")
+            return 0
+    
     def query(self, sql: str, params: List[Any] = None) -> List[Dict[str, Any]]:
         """
         Execute SELECT query and return results as list of dicts.
@@ -212,6 +304,37 @@ class SQLiteStateManager:
                 
         except Exception as e:
             self.logger.error(f"Query failed: {e}")
+            return []
+    
+    def join_query(self, table1: str, table2: str, join_condition: str, select_fields: str = "*", where_clause: str = None, params: List[Any] = None) -> List[Dict[str, Any]]:
+        """
+        Execute JOIN query between two tables.
+        
+        Args:
+            table1: First table name
+            table2: Second table name  
+            join_condition: JOIN condition (e.g., "table1.id = table2.foreign_id")
+            select_fields: Fields to select (default: all)
+            where_clause: Optional WHERE clause
+            params: Query parameters
+            
+        Returns:
+            List of result dictionaries
+        """
+        try:
+            sql = f"""
+                SELECT {select_fields}
+                FROM {table1}
+                JOIN {table2} ON {join_condition}
+            """
+            
+            if where_clause:
+                sql += f" WHERE {where_clause}"
+            
+            return self.query(sql, params)
+            
+        except Exception as e:
+            self.logger.error(f"Join query failed: {e}")
             return []
     
     def count(self, table_name: str, where_clause: str = None, where_params: List[Any] = None) -> int:

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Set
 
 from .base import BaseNormalizer
-from ..models import QPListing
+from ..models import PropertyExtractionSchema
 from ..config import CLEAN_DIR, RAW_DIR
 
 
