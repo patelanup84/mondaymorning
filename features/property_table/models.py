@@ -2,6 +2,7 @@
 from typing import List, Optional, Dict, Any
 from shared.db import db
 from datetime import datetime
+from sqlalchemy import or_, and_
 
 class Property(db.Model):
     """Property entity from qp database."""
@@ -46,22 +47,83 @@ class PropertyRepository:
         per_page: int = 10
     ) -> Dict[str, Any]:
         """Query properties with filters, sorting, and pagination."""
-        # TODO: Build query with joins to urls table
-        # TODO: Apply filters (competitor, community, price range)
-        # TODO: Apply search (address, features)
-        # TODO: Apply sorting
-        # TODO: Paginate results
-        # TODO: Return dict with properties and pagination metadata
-        pass
+        # Base query: join properties with urls
+        query = db.session.query(Property, Url).join(
+            Url, Property.property_id == Url.property_id
+        )
+        
+        # Filter: active status only
+        query = query.filter(Url.status == 'active')
+        
+        # Filter: competitors
+        if competitors and len(competitors) > 0:
+            query = query.filter(Url.competitor_id.in_(competitors))
+        
+        # Filter: communities
+        if communities and len(communities) > 0:
+            query = query.filter(Property.community.in_(communities))
+        
+        # Filter: price range
+        if price_min is not None:
+            query = query.filter(Property.price >= price_min)
+        if price_max is not None:
+            query = query.filter(Property.price <= price_max)
+        
+        # Search: address (partial match, case-insensitive)
+        if search_address:
+            query = query.filter(Property.address.ilike(f'%{search_address}%'))
+        
+        # Search: features (OR logic for multiple keywords)
+        if search_features:
+            keywords = [k.strip() for k in search_features.split(',') if k.strip()]
+            if keywords:
+                feature_filters = [Property.features.ilike(f'%{kw}%') for kw in keywords]
+                query = query.filter(or_(*feature_filters))
+        
+        # Sorting
+        sort_column = getattr(Property, sort_by, None) or getattr(Url, sort_by, None)
+        if sort_column is not None:
+            if sort_order.lower() == 'asc':
+                query = query.order_by(sort_column.asc())
+            else:
+                query = query.order_by(sort_column.desc())
+        
+        # Pagination
+        total = query.count()
+        results = query.limit(per_page).offset((page - 1) * per_page).all()
+        
+        # Transform to list of dicts
+        properties = []
+        for prop, url in results:
+            properties.append({
+                'property': prop,
+                'url': url
+            })
+        
+        return {
+            'properties': properties,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        }
     
     @staticmethod
     def get_unique_competitors() -> List[str]:
-        """Get list of all unique competitor_ids."""
-        # TODO: Query distinct competitor_id from urls table
-        pass
+        """Get list of all unique competitor_ids from active properties."""
+        result = db.session.query(Url.competitor_id).filter(
+            Url.status == 'active'
+        ).distinct().all()
+        return [r[0] for r in result if r[0]]
     
     @staticmethod
     def get_unique_communities() -> List[str]:
-        """Get list of all unique communities."""
-        # TODO: Query distinct community from properties table
-        pass
+        """Get list of all unique communities from active properties."""
+        result = db.session.query(Property.community).join(
+            Url, Property.property_id == Url.property_id
+        ).filter(
+            Url.status == 'active'
+        ).distinct().all()
+        return sorted([r[0] for r in result if r[0]])

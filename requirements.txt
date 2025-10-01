@@ -22,7 +22,7 @@ rich # for sql lite explorer ui
 
 # Flask
 Flask
-SQLAlchemy
+Flask-SQLAlchemy
 python-dotenv
 gunicorn
 
