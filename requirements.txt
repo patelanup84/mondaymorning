@@ -1,0 +1,28 @@
+# Core application dependencies
+pandas
+pydantic
+PyYAML
+python-dotenv
+pyarrow
+click
+
+# Web crawling, data extraction, and LLM/AI
+crawl4ai
+openai
+
+# Rporting
+weasyprint
+jinja2
+
+# Testing
+
+
+# Non project requirement
+rich # for sql lite explorer ui
+
+# Flask
+Flask
+SQLAlchemy
+python-dotenv
+gunicorn
+

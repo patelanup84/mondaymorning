@@ -1,0 +1,31 @@
+
+__pycache__/
+*.pyc
+.env
+*.db
+.DS_Store
+venv/
+
+# Project Specific Folders
+venv/
+_support/
+docs/
+data/
+outputs/
+notebooks/
+sandbox/
+temp/
+tests/
+logs/
+
+# Project Specific Files
+.cursorignore
+.cursorrules
+.llmignore
+.env
+*.csv
+changelog.md
+competitors.csv
+README.md
+sql_explorer.py
+saved_queries.json
